@@ -53,23 +53,29 @@ public class PlugManTabCompleter implements TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
 
-        List<String> completions = new ArrayList<>();
+        if (sender.isOp() || sender.hasPermission("plugman.admin") || sender.hasPermission("plugman." + args[0])) {
 
-        if (args.length == 1) {
-            String partialCommand = args[0];
-            List<String> commands = new ArrayList<>(Arrays.asList(COMMANDS));
-            StringUtil.copyPartialMatches(partialCommand, commands, completions);
+            List<String> completions = new ArrayList<>();
+
+            if (args.length == 1) {
+                String partialCommand = args[0];
+                List<String> commands = new ArrayList<>(Arrays.asList(COMMANDS));
+                StringUtil.copyPartialMatches(partialCommand, commands, completions);
+            }
+
+            if (args.length == 2) {
+                String partialPlugin = args[1];
+                List<String> plugins = PluginUtil.getPluginNames(false);
+                StringUtil.copyPartialMatches(partialPlugin, plugins, completions);
+            }
+
+            Collections.sort(completions);
+
+            return completions;
+
         }
 
-        if (args.length == 2) {
-            String partialPlugin = args[1];
-            List<String> plugins = PluginUtil.getPluginNames(false);
-            StringUtil.copyPartialMatches(partialPlugin, plugins, completions);
-        }
-
-        Collections.sort(completions);
-
-        return completions;
+        return null;
 
     }
 

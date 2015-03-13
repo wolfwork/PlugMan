@@ -27,9 +27,9 @@ package com.rylinaux.plugman;
  */
 
 import com.rylinaux.plugman.listener.PlugManListener;
-import com.rylinaux.plugman.messaging.Messenger;
-import com.rylinaux.plugman.metrics.MetricsHandler;
-import com.rylinaux.plugman.updater.UpdaterHandler;
+import com.rylinaux.plugman.messaging.MessageFormatter;
+import com.rylinaux.plugman.task.MetricsTask;
+import com.rylinaux.plugman.task.UpdaterTask;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -57,16 +57,16 @@ public class PlugMan extends JavaPlugin {
     /**
      * The message manager
      */
-    private Messenger messenger = null;
+    private MessageFormatter messageFormatter = null;
 
     @Override
     public void onEnable() {
 
         instance = this;
 
-        messenger = new Messenger(this);
+        messageFormatter = new MessageFormatter(this);
 
-        this.getCommand("plugman").setExecutor(new PlugManCommands());
+        this.getCommand("plugman").setExecutor(new PlugManCommandHandler());
         this.getCommand("plugman").setTabCompleter(new PlugManTabCompleter());
 
         initConfig();
@@ -80,7 +80,7 @@ public class PlugMan extends JavaPlugin {
     @Override
     public void onDisable() {
         instance = null;
-        messenger = null;
+        messageFormatter = null;
         ignoredPlugins = null;
     }
 
@@ -108,7 +108,7 @@ public class PlugMan extends JavaPlugin {
     private void initMetrics() {
         boolean useMetrics = this.getConfig().getBoolean("use-metrics");
         if (useMetrics) {
-            Bukkit.getScheduler().runTask(this, new MetricsHandler(this));
+            Bukkit.getScheduler().runTask(this, new MetricsTask(this));
         } else {
             if (!this.getConfig().getBoolean("silently-ignore"))
                 this.getLogger().log(Level.INFO, "Skipping Metrics.");
@@ -121,7 +121,7 @@ public class PlugMan extends JavaPlugin {
     private void initUpdater() {
         String updaterType = this.getConfig().getString("updater-type");
         if (!updaterType.equalsIgnoreCase("none")) {
-            Bukkit.getScheduler().runTaskAsynchronously(this, new UpdaterHandler(this, this.getFile(), updaterType));
+            Bukkit.getScheduler().runTaskAsynchronously(this, new UpdaterTask(this, this.getFile(), updaterType));
         } else {
             if (!this.getConfig().getBoolean("silently-ignore"))
                 this.getLogger().log(Level.INFO, "Skipping Updater.");
@@ -151,8 +151,8 @@ public class PlugMan extends JavaPlugin {
      *
      * @return the message manager
      */
-    public Messenger getMessenger() {
-        return messenger;
+    public MessageFormatter getMessageFormatter() {
+        return messageFormatter;
     }
 
 }
